@@ -1,15 +1,1 @@
-{
-  "homing_offset": [-2049, -1215, 2866, 2138, -1959, 2846],
-  "drive_mode": [0, 0, 1, 1, 0, 1],
-  "start_pos": [2138, 1086, 2962, 2089, 2066, 1982],
-  "end_pos": [3073, 2239, -1842, -1114, 2983, -1822],
-  "calib_mode": ["DEGREE", "DEGREE", "DEGREE", "DEGREE", "DEGREE", "LINEAR"],
-  "motor_names": [
-    "shoulder_pan",
-    "shoulder_lift",
-    "elbow_flex",
-    "wrist_flex",
-    "wrist_roll",
-    "gripper"
-  ]
-}
+{"homing_offset": [-2105, -1013, 3053, 2142, -1951, 2207, -1331], "drive_mode": [0, 0, 1, 1, 0, 1, 0], "start_pos": [2188, 1064, 3017, 2038, 2007, 2006, 2048], "end_pos": [3129, 2037, -2029, -1118, 2975, -1183, 2355], "calib_mode": ["DEGREE", "DEGREE", "DEGREE", "DEGREE", "DEGREE", "DEGREE", "LINEAR"], "motor_names": ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "wrist_yaw", "gripper"]}
