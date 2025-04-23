@@ -23,7 +23,9 @@ from scservo_sdk import *                    # Uses SCServo SDK library
 
 # Control table addresses for the servo
 ADDR_STS_PRESENT_POSITION = 56   # Address for Present Position
+ADDR_STS_TORQUE_ENABLE = 64      # Address for Torque Enable status
 PRESENT_POSITION_SIZE = 4        # Data size is 4 bytes (position + speed)
+TORQUE_ENABLE_SIZE = 1           # Data size is 1 byte for torque status
 
 # Set up command line arguments
 parser = argparse.ArgumentParser(description='SCServo group sync read utility')
@@ -43,8 +45,9 @@ portHandler = PortHandler(args.port)
 # Initialize PacketHandler instance
 packetHandler = PacketHandler(PROTOCOL_END)
 
-# Initialize GroupSyncRead instance for Present Position
+# Initialize GroupSyncRead instances
 groupSyncRead = GroupSyncRead(portHandler, packetHandler, ADDR_STS_PRESENT_POSITION, PRESENT_POSITION_SIZE)
+groupSyncReadTorque = GroupSyncRead(portHandler, packetHandler, ADDR_STS_TORQUE_ENABLE, TORQUE_ENABLE_SIZE)
 
 # Open port
 if portHandler.openPort():
@@ -67,7 +70,8 @@ else:
 # Add parameter storage for servo IDs 1-n
 for servoId in range(1, args.n + 1):
     servo_addparam_result = groupSyncRead.addParam(servoId)
-    if servo_addparam_result != True:
+    torque_addparam_result = groupSyncReadTorque.addParam(servoId)
+    if servo_addparam_result != True or torque_addparam_result != True:
         print(f"[ID:{servoId:03d}] groupSyncRead addparam failed")
         quit()
 
@@ -76,9 +80,10 @@ while True:
     if getch() == chr(0x1b):
         break
 
-    # Syncread present position
+    # Syncread present position and torque status
     servo_comm_result = groupSyncRead.txRxPacket()
-    if servo_comm_result != COMM_SUCCESS:
+    torque_comm_result = groupSyncReadTorque.txRxPacket()
+    if servo_comm_result != COMM_SUCCESS or torque_comm_result != COMM_SUCCESS:
         print(f"Failed to sync read: {packetHandler.getTxRxResult(servo_comm_result)}")
         continue
         
@@ -98,7 +103,10 @@ while True:
             # Extract speed (higher 2 bytes)
             speed = SCS_HIWORD(position_speed_data)
             
-            print(f"Servo ID: {servoId} | Position: {position} | Speed: {SCS_TOHOST(speed, 15)}")
+            # Get torque status
+            torque_status = groupSyncReadTorque.getData(servoId, ADDR_STS_TORQUE_ENABLE, TORQUE_ENABLE_SIZE)
+            torque_enabled = "ON" if torque_status else "OFF"
+            print(f"Servo ID: {servoId} | Position: {position} | Speed: {SCS_TOHOST(speed, 15)} | Torque: {torque_enabled}")
         else:
             print(f"Servo ID: {servoId} | Failed to get data")
     
