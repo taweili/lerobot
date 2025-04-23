@@ -443,7 +443,7 @@ class So100RobotConfig(ManipulatorRobotConfig):
     leader_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "main": FeetechMotorsBusConfig(
-                port="/dev/ttyACM1",
+                port="/dev/tty.usbmodem58760431091",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -451,8 +451,7 @@ class So100RobotConfig(ManipulatorRobotConfig):
                     "elbow_flex": [3, "sts3215"],
                     "wrist_flex": [4, "sts3215"],
                     "wrist_roll": [5, "sts3215"],
-                    "wrist_yaw": [6, "sts3215"],
-                    "gripper": [7, "sts3215"],
+                    "gripper": [6, "sts3215"],
                 },
             ),
         }
@@ -461,7 +460,7 @@ class So100RobotConfig(ManipulatorRobotConfig):
     follower_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "main": FeetechMotorsBusConfig(
-                port="/dev/ttyACM0",
+                port="/dev/tty.usbmodem585A0076891",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -469,8 +468,7 @@ class So100RobotConfig(ManipulatorRobotConfig):
                     "elbow_flex": [3, "sts3215"],
                     "wrist_flex": [4, "sts3215"],
                     "wrist_roll": [5, "sts3215"],
-                    "wrist_yaw": [6, "sts3215"],
-                    "gripper": [7, "sts3215"],
+                    "gripper": [6, "sts3215"],
                 },
             ),
         }
@@ -490,12 +488,6 @@ class So100RobotConfig(ManipulatorRobotConfig):
                 width=640,
                 height=480,
             ),
-            "arm": OpenCVCameraConfig(
-                camera_index=2,
-                fps=30,
-                width=640,
-                height=480
-            )
         }
     )
 
