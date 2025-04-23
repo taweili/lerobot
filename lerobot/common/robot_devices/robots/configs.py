@@ -443,7 +443,7 @@ class So100RobotConfig(ManipulatorRobotConfig):
     leader_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "main": FeetechMotorsBusConfig(
-                port="/dev/tty.usbmodem58760431091",
+                port="/dev/ttyACM1",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -460,7 +460,7 @@ class So100RobotConfig(ManipulatorRobotConfig):
     follower_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "main": FeetechMotorsBusConfig(
-                port="/dev/tty.usbmodem585A0076891",
+                port="/dev/ttyACM0",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -495,7 +495,7 @@ class So100RobotConfig(ManipulatorRobotConfig):
 
 @RobotConfig.register_subclass("sa100")
 @dataclass
-class So100RobotConfig(ManipulatorRobotConfig):
+class Sa100RobotConfig(ManipulatorRobotConfig):
     calibration_dir: str = ".cache/calibration/sa100"
     # `max_relative_target` limits the magnitude of the relative positional target vector for safety purposes.
     # Set this to a positive scalar to have the same value for all motors, or a list that is the same length as
@@ -504,7 +504,7 @@ class So100RobotConfig(ManipulatorRobotConfig):
 
     leader_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
-            "main": FeetechMotorsBusConfig(
+            "right": FeetechMotorsBusConfig(
                 port="/dev/ttyACM1",
                 motors={
                     # name: (index, model)
@@ -522,7 +522,7 @@ class So100RobotConfig(ManipulatorRobotConfig):
 
     follower_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
-            "main": FeetechMotorsBusConfig(
+            "right": FeetechMotorsBusConfig(
                 port="/dev/ttyACM0",
                 motors={
                     # name: (index, model)
