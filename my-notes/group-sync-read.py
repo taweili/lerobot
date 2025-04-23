@@ -33,7 +33,21 @@ parser.add_argument('--port', type=str, default='/dev/ttyACM0',
                    help='Port name (e.g. /dev/ttyACM0 or COM1)')
 parser.add_argument('--n', type=int, default=7,
                    help='Number of servos to check (1-n)')
+parser.add_argument('--ids', type=str,
+                   help='Comma-separated list of servo IDs to check (overrides --n)')
 args = parser.parse_args()
+
+# Process servo IDs
+if args.ids:
+    try:
+        servo_ids = [int(id.strip()) for id in args.ids.split(',')]
+        if not servo_ids:
+            raise ValueError("No valid servo IDs provided")
+    except ValueError as e:
+        print(f"Invalid servo IDs: {e}")
+        quit()
+else:
+    servo_ids = list(range(1, args.n + 1))
 
 # Protocol settings
 BAUDRATE = 1000000              # Default Baudrate of SCServo
@@ -67,8 +81,8 @@ else:
     getch()
     quit()
 
-# Add parameter storage for servo IDs 1-n
-for servoId in range(1, args.n + 1):
+# Add parameter storage for servo IDs
+for servoId in servo_ids:
     servo_addparam_result = groupSyncRead.addParam(servoId)
     torque_addparam_result = groupSyncReadTorque.addParam(servoId)
     if servo_addparam_result != True or torque_addparam_result != True:
@@ -91,7 +105,7 @@ while True:
     print("\nServo Positions:")
     print("-----------------")
     
-    for servoId in range(1, args.n + 1):
+    for servoId in servo_ids:
         # Check if data from the servo is available
         if groupSyncRead.isAvailable(servoId, ADDR_STS_PRESENT_POSITION, PRESENT_POSITION_SIZE):
             # Get the position value (4 bytes data: Position + Speed)
