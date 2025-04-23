@@ -31,13 +31,24 @@ def scan_all_servos(port, model="sts3215", servo_id=None):
             for servo_id in present_ids:
                 try:
                     data_names = [
-                        "Model", 
-                        "ID", 
-                        "Mode", 
-                        "Present_Position", 
+                        "Model",
+                        "ID",
+                        "Mode",
+                        "Present_Position",
                         "Goal_Position",
                         "Offset",
-                        "Status"
+                        "Status",
+                        "Present_Speed",
+                        "Present_Load",
+                        "Present_Voltage",
+                        "Present_Temperature",
+                        "Present_Current",
+                        "Moving",
+                        "Torque_Enable",
+                        "Max_Temperature_Limit",
+                        "Max_Voltage_Limit",
+                        "Min_Voltage_Limit",
+                        "Baud_Rate"
                     ]
                     print(f"\nServo ID: {servo_id}")
                     for data_name in data_names:
