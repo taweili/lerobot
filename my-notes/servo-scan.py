@@ -45,6 +45,7 @@ def scan_all_servos(port, model="sts3215", servo_id=None):
                         "Present_Current",
                         "Moving",
                         "Torque_Enable",
+                        "Protective_Torque",
                         "Max_Temperature_Limit",
                         "Max_Voltage_Limit",
                         "Min_Voltage_Limit",
