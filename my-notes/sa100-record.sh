@@ -1,3 +1,24 @@
+#!/bin/bash
+
+# https://www.genspark.ai/agents?id=32507939-e62d-4db2-a528-809582876711
+
+# Default values
+REPO_ID="taweili/sa100_002"
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --repo_id=*)
+      REPO_ID="${1#*=}"
+      shift
+      ;;
+    *)
+      echo "Unknown parameter: $1"
+      exit 1
+      ;;
+  esac
+done
+
 python lerobot/scripts/control_robot.py \
   --robot.type=sa100 \
   --control.type=record \
@@ -9,4 +30,5 @@ python lerobot/scripts/control_robot.py \
   --control.reset_time_s=30 \
   --control.num_episodes=2 \
   --control.push_to_hub=false \
-  --control.repo_id=my-notes/sa100_002 
+  --control.root=/home/david/Works/lerobot/my-notes/dataset/$REPO_ID \
+  --control.repo_id="$REPO_ID"

@@ -171,5 +171,10 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Local cache of sa100
 .cache/calibration/sa100/main_follower.json
 .cache/calibration/sa100/main_leader.json
+
+# training dataset
+my-notes/dataset
