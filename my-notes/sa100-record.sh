@@ -1,23 +1,26 @@
 #!/bin/bash
 
-# https://www.genspark.ai/agents?id=32507939-e62d-4db2-a528-809582876711
+# Function to display usage instructions
+usage() {
+    echo "Usage: $0 <repo_id>"
+    echo "  repo_id : Repository ID (must be a non-empty string)"
+    exit 1
+}
 
-# Default values
-REPO_ID="taweili/sa100_002"
+# Check if repo_id argument is provided
+if [ $# -eq 0 ]; then
+    echo "Error: repo_id argument is required"
+    usage
+fi
 
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --repo_id=*)
-      REPO_ID="${1#*=}"
-      shift
-      ;;
-    *)
-      echo "Unknown parameter: $1"
-      exit 1
-      ;;
-  esac
-done
+# Get the repo_id from first argument
+REPO_ID="$1"
+
+# Validate repo_id is not empty
+if [ -z "$REPO_ID" ]; then
+    echo "Error: repo_id must be a non-empty string"
+    usage
+fi
 
 python lerobot/scripts/control_robot.py \
   --robot.type=sa100 \
