@@ -635,6 +635,12 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
                 fps=30,
                 width=640,
                 height=480
+            ),
+            "center_eye": OpenCVCameraConfig(
+                camera_index=6,
+                fps=30,
+                width=640,
+                height=480
             )
         }
     )
