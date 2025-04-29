@@ -580,6 +580,19 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
                     "gripper": [7, "sts3215"],
                 },
             ),
+            "left": FeetechMotorsBusConfig(
+                port="/dev/ttyACM2",
+                motors={
+                    # name: (index, model)
+                    "shoulder_pan": [1, "sts3215"],
+                    "shoulder_lift": [2, "sts3215"],
+                    "elbow_flex": [3, "sts3215"],
+                    "wrist_flex": [4, "sts3215"],
+                    "wrist_roll": [5, "sts3215"],
+                    "wrist_yaw": [6, "sts3215"],
+                    "gripper": [7, "sts3215"],
+                },
+            ),
         }
     )
 
@@ -598,6 +611,20 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
                     "gripper": [7, "sts3215"],
                 },
             ),
+            "left": FeetechMotorsBusConfig(
+                port="/dev/ttyACM3",
+                motors={
+                    # name: (index, model)
+                    "shoulder_pan": [1, "sts3215"],
+                    "shoulder_lift": [2, "sts3215"],
+                    "elbow_flex": [3, "sts3215"],
+                    "wrist_flex": [4, "sts3215"],
+                    "wrist_roll": [5, "sts3215"],
+                    "wrist_yaw": [6, "sts3215"],
+                    "gripper": [7, "sts3215"],
+                },
+            ),
+
         }
     )
 
