@@ -31,4 +31,5 @@ python lerobot/scripts/control_robot.py \
   --control.num_episodes=2 \
   --control.push_to_hub=false \
   --control.root=/home/david/Works/lerobot/my-notes/dataset/$REPO_ID \
-  --control.repo_id="$REPO_ID"
+  --control.repo_id="$REPO_ID" \
+  --control.display_data=true 
