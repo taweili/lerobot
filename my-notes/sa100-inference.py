@@ -1,3 +1,4 @@
+import argparse
 from lerobot.common.policies.act.modeling_act import ACTPolicy
 from lerobot.common.robot_devices.robots.configs import Sa100RobotConfig
 from lerobot.common.robot_devices.robots.manipulator import ManipulatorRobot
@@ -15,7 +16,12 @@ inference_time_s = 60
 fps = 30
 device = "cpu"  # TODO: On Mac, use "mps" or "cpu"
 
-ckpt_path = "outputs/train/taweili/sa004/checkpoints/last/pretrained_model"
+parser = argparse.ArgumentParser()
+parser.add_argument("--repo_id", type=str, required=True,
+                   help="Repository ID for the pretrained model (e.g. 'taweili/sa004')")
+args = parser.parse_args()
+
+ckpt_path = f"outputs/train/{args.repo_id}/checkpoints/last/pretrained_model"
 policy = ACTPolicy.from_pretrained(ckpt_path)
 policy.to(device)
 
