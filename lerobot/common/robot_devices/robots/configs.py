@@ -581,7 +581,7 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
                 },
             ),
             "left": FeetechMotorsBusConfig(
-                port="/dev/ttyACM2",
+                port="/dev/ttyACM3",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -612,7 +612,7 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
                 },
             ),
             "left": FeetechMotorsBusConfig(
-                port="/dev/ttyACM3",
+                port="/dev/ttyACM2",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -631,13 +631,13 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
     cameras: dict[str, CameraConfig] = field(
         default_factory=lambda: {
             "right_arm": OpenCVCameraConfig(
-                camera_index=2,
+                camera_index=3,
                 fps=30,
                 width=640,
                 height=480
             ),
             "center_eye": OpenCVCameraConfig(
-                camera_index=6,
+                camera_index=5,
                 fps=30,
                 width=640,
                 height=480
