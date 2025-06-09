@@ -1,0 +1,195 @@
+#!/usr/bin/expect -f
+# Camera Setup GUI using Tcl/Tk with Expect
+
+package require Tk
+
+# Global variables
+set camera_devices {/dev/video2 /dev/video4 /dev/video6}
+set camera_labels {Right Left Center}
+set camera_states {0 0 0} ;# 0=not connected, 1=connected
+set current_step 0
+
+# Main window
+wm title . "摄像头设置向导"
+wm geometry . 800x600
+grid [ttk::frame .main -padding "20 20 20 20"] -column 0 -row 0 -sticky nwes
+grid columnconfigure . 0 -weight 1
+grid rowconfigure . 0 -weight 1
+
+# Step 1: Initial instructions
+proc show_initial_step {} {
+    global current_step
+    
+    destroy_widgets
+    
+    set f [ttk::frame .main.step1]
+    pack $f -fill both -expand 1
+    
+    ttk::label $f.title -text "摄像头设置 - 第1步/共3步" -font {Helvetica  12 bold}
+    pack $f.title -pady 10
+    
+    ttk::label $f.instructions -text "请先拔掉所有三个摄像头\n\n这将确保正确的设备检测顺序" \
+        -font {Helvetica  10} -justify center
+    pack $f.instructions -pady 20
+    
+    ttk::button $f.next -text "我已拔掉所有摄像头" -command {
+        set current_step 1
+        show_driver_reset
+    }
+    pack $f.next -pady 20
+}
+
+# Step 2: Driver reset
+proc show_driver_reset {} {
+    global current_step
+    
+    destroy_widgets
+    
+    set f [ttk::frame .main.step2]
+    pack $f -fill both -expand 1
+    
+    ttk::label $f.title -text "摄像头设置 - 第2步/共3步" -font {"Noto Sans CJK SC" 16 bold}
+    pack $f.title -pady 10
+    
+    ttk::label $f.status -text "正在重置USB驱动..." -font {"Noto Sans CJK SC" 14}
+    pack $f.status -pady 10
+    
+    # Progress bar
+    ttk::progressbar $f.progress -orient horizontal -mode indeterminate
+    pack $f.progress -pady 20 -fill x -padx 50
+    $f.progress start
+    
+    # Store widget references for after scripts
+    set ::progress_widget $f.progress
+    set ::status_widget $f.status
+    set ::step2_frame $f
+
+    # Execute driver reset commands with pkexec for both operations
+    after 1000 {
+        if {[catch {exec pkexec modprobe -r uvcvideo} err]} {
+            $::progress_widget stop
+            $::status_widget configure -text "Driver reset failed!" -foreground red
+            tk_messageBox -icon error -title "Error" -message \
+                "Failed to unload uvcvideo module:\n$err"
+            return
+        }
+        
+        after 5000 {
+            if {[catch {exec pkexec modprobe uvcvideo} err]} {
+                $::progress_widget stop
+                $::status_widget configure -text "Driver reset failed!" -foreground red
+                tk_messageBox -icon error -title "Error" -message \
+                    "Failed to reload uvcvideo module:\n$err"
+                return
+            }
+            
+            $::progress_widget stop
+            $::status_widget configure -text "驱动重置完成!"
+            ttk::button $::step2_frame.next -text "继续连接摄像头" -command {
+                set ::current_step 2
+                show_camera_connection
+            }
+            pack $::step2_frame.next -pady 20
+        }
+    }
+}
+
+# Step 3: Camera connection
+proc show_camera_connection {} {
+    global camera_labels camera_states current_step
+    
+    destroy_widgets
+    
+    set f [ttk::frame .main.step3]
+    pack $f -fill both -expand 1
+    
+    ttk::label $f.title -text "摄像头设置 - 第3步/共3步" -font {Helvetica 12 bold}
+    pack $f.title -pady 10
+    
+    ttk::label $f.instructions -text "请按以下顺序连接摄像头:" -font {Helvetica 10}
+    pack $f.instructions -pady 10
+    
+    # Camera buttons frame
+    set btn_frame [ttk::frame $f.buttons]
+    pack $btn_frame -pady 20
+    
+    # Create camera buttons
+    for {set i 0} {$i < 3} {incr i} {
+        set btn [ttk::button $btn_frame.btn$i -text [lindex $::camera_labels $i] -state disabled]
+        grid $btn -row 0 -column $i -padx 10
+    }
+    
+    # Enable first button only
+    $btn_frame.btn0 configure -state normal -command {
+        check_camera_connection 0
+    }
+    
+    # Restart button
+    ttk::button $f.restart -text "Restart Process" -command {
+        set current_step 0
+        show_initial_step
+    }
+    pack $f.restart -pady 20 -side bottom
+}
+
+# Check if camera is connected
+proc check_camera_connection {index} {
+    global camera_devices camera_states
+    
+    set device [lindex $camera_devices $index]
+    
+    if {[file exists $device]} {
+        # Camera detected
+        set ::camera_states [lreplace $::camera_states $index $index 1]
+        .main.step3.buttons.btn$index configure -style "Success.TButton"
+        
+        # Enable next button if available
+        if {$index < 2} {
+            .main.step3.buttons.btn[expr {$index + 1}] configure -state normal -command \
+                "check_camera_connection [expr {$index + 1}]"
+        } else {
+            # All cameras connected
+            show_completion
+        }
+    } else {
+        # Camera not detected
+        .main.step3.buttons.btn$index configure -style "Error.TButton"
+        tk_messageBox -icon warning -title "Error" -message \
+            "未检测到[lindex $::camera_labels $index]摄像头($device)\n\n请按正确顺序连接"
+    }
+}
+
+# Completion screen
+proc show_completion {} {
+    destroy_widgets
+    
+    set f [ttk::frame .main.complete]
+    pack $f -fill both -expand 1
+    
+    ttk::label $f.title -text "设置完成!" -font {Helvetica 12 bold}
+    pack $f.title -pady 10
+    
+    ttk::label $f.message -text "所有摄像头已按正确顺序成功连接。" \
+        -font {Helvetica 10} -justify center
+    pack $f.message -pady 20
+    
+    ttk::button $f.finish -text "完成" -command {exit}
+    pack $f.finish -pady 20
+}
+
+# Helper to clear current widgets
+proc destroy_widgets {} {
+    foreach child [winfo children .main] {
+        destroy $child
+    }
+}
+
+# Define styles with Noto Sans as default font
+option add *font {Helvetica 14}
+ttk::style configure TButton -padding 10
+ttk::style configure Large.TButton -font {Helvetica 16} -padding 12
+ttk::style configure Success.TButton -background "#4CAF50" -foreground white
+ttk::style configure Error.TButton -background "#F44336" -foreground white
+
+# Start the wizard
+show_initial_step
