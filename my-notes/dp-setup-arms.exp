@@ -1,0 +1,112 @@
+#!/usr/bin/expect -f
+# Robot Arm Connection Guide - Expect/Tk GUI
+
+# Declare all global variables
+global arms arm_order current_arm device_files connected timeout_seconds
+
+package require Tk
+
+# Arm names in Chinese
+set arms [list "前右" "后右" "前左" "后左"]
+set arm_order [list 0 1 2 3] ;# Indexes of arms in connection order
+set current_arm -1
+set device_files [list "/dev/ttyACM0" "/dev/ttyACM1" "/dev/ttyACM2" "/dev/ttyACM3"]
+set connected [list 0 0 0 0]
+set timeout_seconds 30
+
+# Create main window
+wm title . "Robot Arm Connection Guide"
+wm geometry . 400x300
+
+# Create exit button (hidden initially)
+button .exit -text "退出程序" -command {
+    destroy .
+    exit
+} -state disabled
+pack .exit -pady 5
+
+# Create arm display frames
+frame .arms
+pack .arms -fill both -expand true
+
+for {set i 0} {$i < 4} {incr i} {
+    frame .arms.arm$i -relief ridge -borderwidth 2 -width 100 -height 60
+    label .arms.arm$i.label -text [lindex $arms $i] -font {Helvetica 24}
+    pack .arms.arm$i.label -padx 10 -pady 10
+    grid .arms.arm$i -row [expr {$i/2}] -column [expr {$i%2}] -padx 10 -pady 10
+}
+
+# Status label
+label .status -text "请连接: [lindex $arms 0]" -font {Helvetica 12}
+pack .status -pady 10
+
+# Start button
+button .start -text "开始连接" -command start_connection
+pack .start -pady 5
+
+# Next arm procedure
+proc next_arm {} {
+    global arms arm_order current_arm connected status
+    
+    set current_arm [expr {$current_arm + 1}]
+    if {$current_arm >= [llength $arm_order]} {
+        .status configure -text "所有机械臂已成功连接!" -fg green
+        .exit configure -state normal
+        return
+    }
+    
+    set arm_idx [lindex $arm_order $current_arm]
+    .status configure -text "请连接: [lindex $arms $arm_idx]" -fg black
+    
+    # Reset all highlights
+    for {set i 0} {$i < 4} {incr i} {
+        .arms.arm$i configure -bg white
+    }
+    
+    # Highlight current arm
+    .arms.arm$arm_idx configure -bg yellow
+    
+    # Start monitoring for device
+    after 1000 "monitor_device $arm_idx"
+}
+
+# Device monitoring procedure
+proc monitor_device {arm_idx} {
+    global arms device_files connected timeout_seconds
+    
+    set device [lindex $device_files $arm_idx]
+    
+    if {[file exists $device]} {
+        # Device detected
+        .arms.arm$arm_idx configure -bg lightgreen
+        set connected [lreplace $connected $arm_idx $arm_idx 1]
+        # Update UI immediately before proceeding
+        update
+        after 1000 next_arm
+    } else {
+        # Check timeout
+        if {[incr ::monitor_count] >= $timeout_seconds} {
+            .status configure -text "超时: 未检测到[lindex $arms $arm_idx]" -fg red
+            after 2000 next_arm
+        } else {
+            after 1000 "monitor_device $arm_idx"
+        }
+    }
+}
+
+# Start connection procedure
+proc start_connection {} {
+    global monitor_count
+    
+    set monitor_count 0
+    .start configure -state disabled
+    next_arm
+}
+
+# Initialize
+for {set i 0} {$i < 4} {incr i} {
+    .arms.arm$i configure -bg white
+}
+
+# Run the application
+vwait forever
