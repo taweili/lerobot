@@ -66,6 +66,6 @@ python lerobot/scripts/control_robot.py \
   --control.reset_time_s=$RESET_TIME_S \
   --control.num_episodes=$NUM_EPISODES \
   --control.push_to_hub=false \
-  --control.root=/home/david/Works/lerobot/my-notes/dataset/$REPO_ID \
+  --control.root=$HOME/dpbot_trainings/dataset/$REPO_ID \
   --control.repo_id="$REPO_ID" \
   --control.display_data=true 
