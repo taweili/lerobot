@@ -568,7 +568,7 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
     leader_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "right": FeetechMotorsBusConfig(
-                port="/dev/ttyACM1",
+                port="/dev/dpbotRL",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -581,7 +581,7 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
                 },
             ),
             "left": FeetechMotorsBusConfig(
-                port="/dev/ttyACM3",
+                port="/dev/dpbotLL",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -599,7 +599,7 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
     follower_arms: dict[str, MotorsBusConfig] = field(
         default_factory=lambda: {
             "right": FeetechMotorsBusConfig(
-                port="/dev/ttyACM0",
+                port="/dev/dpbotRF",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -612,7 +612,7 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
                 },
             ),
             "left": FeetechMotorsBusConfig(
-                port="/dev/ttyACM2",
+                port="/dev/dpbotLF",
                 motors={
                     # name: (index, model)
                     "shoulder_pan": [1, "sts3215"],
@@ -631,19 +631,19 @@ class Sa100RobotConfig(ManipulatorRobotConfig):
     cameras: dict[str, CameraConfig] = field(
         default_factory=lambda: {
             "right_arm": OpenCVCameraConfig(
-                camera_index=2,
+                camera_index="/dev/dpbotCamR",
                 fps=30,
                 width=640,
                 height=480
             ),
             "left_arm": OpenCVCameraConfig(
-                camera_index=4,
+                camera_index="/dev/dpbotCamL",
                 fps=30,
                 width=640,
                 height=480
             ),
             "center_eye": OpenCVCameraConfig(
-                camera_index=6,
+                camera_index="/dev/dpbotCamC",
                 fps=30,
                 width=640,
                 height=480
