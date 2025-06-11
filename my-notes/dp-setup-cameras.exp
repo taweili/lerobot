@@ -1,5 +1,5 @@
 #!/usr/bin/expect -f
-# Camera Setup GUI using Tcl/Tk with Expect
+# Camera Setup GUI using Tcl/Tk with Expect - Automatic Version
 
 package require Tk
 
@@ -8,6 +8,8 @@ set camera_devices {/dev/video2 /dev/video4 /dev/video6}
 set camera_labels {右边 左边 中间}
 set camera_states {0 0 0} ;# 0=not connected, 1=connected
 set current_step 0
+set check_interval 1000 ;# ms between automatic checks
+set max_wait_time 30000 ;# 30s timeout
 
 # Main window
 wm title . "摄像头设置向导"
@@ -16,7 +18,7 @@ grid [ttk::frame .main -padding "20 20 20 20"] -column 0 -row 0 -sticky nwes
 grid columnconfigure . 0 -weight 1
 grid rowconfigure . 0 -weight 1
 
-# Step 1: Initial instructions
+# Step 1: Initial instructions (unchanged)
 proc show_initial_step {} {
     global current_step
     
@@ -39,7 +41,7 @@ proc show_initial_step {} {
     pack $f.next -pady 20
 }
 
-# Step 2: Driver reset
+# Step 2: Driver reset (unchanged)
 proc show_driver_reset {} {
     global current_step
     
@@ -54,17 +56,14 @@ proc show_driver_reset {} {
     ttk::label $f.status -text "正在重置USB驱动..." -font {Helvetica  24}
     pack $f.status -pady 10
     
-    # Progress bar
     ttk::progressbar $f.progress -orient horizontal -mode indeterminate
     pack $f.progress -pady 20 -fill x -padx 50
     $f.progress start
     
-    # Store widget references for after scripts
     set ::progress_widget $f.progress
     set ::status_widget $f.status
     set ::step2_frame $f
 
-    # Execute driver reset commands with pkexec for both operations
     after 1000 {
         if {[catch {exec pkexec modprobe -r uvcvideo} err]} {
             $::progress_widget stop
@@ -94,9 +93,9 @@ proc show_driver_reset {} {
     }
 }
 
-# Step 3: Camera connection
+# Step 3: Automatic camera connection checking
 proc show_camera_connection {} {
-    global camera_labels camera_states current_step
+    global camera_labels camera_states check_interval max_wait_time
     
     destroy_widgets
     
@@ -109,57 +108,70 @@ proc show_camera_connection {} {
     ttk::label $f.instructions -text "请按以下顺序连接摄像头:" -font {Helvetica 24}
     pack $f.instructions -pady 10
     
-    # Camera buttons frame
-    set btn_frame [ttk::frame $f.buttons]
-    pack $btn_frame -pady 20
+    # Status indicators frame
+    set status_frame [ttk::frame $f.status]
+    pack $status_frame -pady 20
     
-    # Create camera buttons
+    # Create status labels
     for {set i 0} {$i < 3} {incr i} {
-        set btn [ttk::button $btn_frame.btn$i -text [lindex $::camera_labels $i] -state disabled -style Camera.TButton]
-        grid $btn -row 0 -column $i -padx 10
+        ttk::label $status_frame.label$i -text [lindex $::camera_labels $i] -font {Helvetica 16}
+        ttk::label $status_frame.status$i -text "等待连接..." -font {Helvetica 16}
+        grid $status_frame.label$i -row $i -column 0 -sticky w -padx 10
+        grid $status_frame.status$i -row $i -column 1 -sticky w -padx 10
     }
     
-    # Enable first button only
-    $btn_frame.btn0 configure -state normal -command {
-        check_camera_connection 0
-    }
+    # Start automatic checking
+    set ::start_time [clock milliseconds]
+    check_cameras_automatically
     
     # Restart button
-    ttk::button $f.restart -text "Restart Process" -command {
+    ttk::button $f.restart -text "重新开始" -command {
         set current_step 0
         show_initial_step
     }
     pack $f.restart -pady 20 -side bottom
 }
 
-# Check if camera is connected
-proc check_camera_connection {index} {
-    global camera_devices camera_states
+proc check_cameras_automatically {} {
+    global camera_devices camera_states check_interval max_wait_time
     
-    set device [lindex $camera_devices $index]
+    set current_time [clock milliseconds]
+    if {($current_time - $::start_time) > $max_wait_time} {
+        tk_messageBox -icon warning -title "超时" -message "摄像头连接超时，请检查设备并重试"
+        return
+    }
     
-    if {[file exists $device]} {
-        # Camera detected
-        set ::camera_states [lreplace $::camera_states $index $index 1]
-        .main.step3.buttons.btn$index configure -style "Success.TButton"
-        
-        # Enable next button if available
-        if {$index < 2} {
-            .main.step3.buttons.btn[expr {$index + 1}] configure -state normal -command \
-                "check_camera_connection [expr {$index + 1}]"
-        } else {
-            # All cameras connected
-            show_completion
+    set all_connected 1
+    for {set i 0} {$i < 3} {incr i} {
+        # Only check next camera if previous ones are connected
+        if {$i > 0 && [lindex $camera_states [expr {$i - 1}]] == 0} {
+            set all_connected 0
+            continue
         }
+        
+        set device [lindex $camera_devices $i]
+        if {[file exists $device]} {
+            if {[lindex $camera_states $i] == 0} {
+                .main.step3.status.status$i configure -text "已连接" -foreground "#4CAF50"
+                set ::camera_states [lreplace $::camera_states $i $i 1]
+            }
+        } else {
+            if {[lindex $camera_states $i] == 1} {
+                .main.step3.status.status$i configure -text "已断开" -foreground "#F44336"
+                set ::camera_states [lreplace $::camera_states $i $i 0]
+            }
+            set all_connected 0
+        }
+    }
+    
+    if {$all_connected} {
+        show_completion
     } else {
-        # Camera not detected
-        .main.step3.buttons.btn$index configure -style "Error.TButton"
-        tk_messageBox -icon warning -title "Error" -message \
-            "未检测到[lindex $::camera_labels $index]摄像头($device)\n\n请按正确顺序连接"
+        after $check_interval check_cameras_automatically
     }
 }
 
-# Completion screen
+# Completion screen (unchanged)
 proc show_completion {} {
     destroy_widgets
     
@@ -177,20 +189,19 @@ proc show_completion {} {
     pack $f.finish -pady 20
 }
 
-# Helper to clear current widgets
+# Helper to clear current widgets (unchanged)
 proc destroy_widgets {} {
     foreach child [winfo children .main] {
         destroy $child
     }
 }
 
-# Define styles with Noto Sans as default font
+# Define styles
 option add *font {Helvetica 14}
 ttk::style configure TButton -padding 10
 ttk::style configure Large.TButton -font {Helvetica 16} -padding 12
-ttk::style configure Camera.TButton -font {Helvetica 24} -padding 10
-ttk::style configure Success.TButton -background "#4CAF50" -foreground white
-ttk::style configure Error.TButton -background "#F44336" -foreground white
+ttk::style configure Success.TLabel -foreground "#4CAF50"
+ttk::style configure Error.TLabel -foreground "#F44336"
 
 # Start the wizard
 show_initial_step
