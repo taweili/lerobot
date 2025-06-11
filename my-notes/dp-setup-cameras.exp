@@ -5,7 +5,7 @@ package require Tk
 
 # Global variables
 set camera_devices {/dev/video2 /dev/video4 /dev/video6}
-set camera_labels {Right Left Center}
+set camera_labels {右边 左边 中间}
 set camera_states {0 0 0} ;# 0=not connected, 1=connected
 set current_step 0
 
@@ -25,7 +25,7 @@ proc show_initial_step {} {
     set f [ttk::frame .main.step1]
     pack $f -fill both -expand 1
     
-    ttk::label $f.title -text "摄像头设置 - 第1步/共3步" -font {Helvetica  12 bold}
+    ttk::label $f.title -text "摄像头设置 - 第1步/共3步" -font {Helvetica  24}
     pack $f.title -pady 10
     
     ttk::label $f.instructions -text "请先拔掉所有三个摄像头\n\n这将确保正确的设备检测顺序" \
@@ -48,10 +48,10 @@ proc show_driver_reset {} {
     set f [ttk::frame .main.step2]
     pack $f -fill both -expand 1
     
-    ttk::label $f.title -text "摄像头设置 - 第2步/共3步" -font {"Noto Sans CJK SC" 16 bold}
+    ttk::label $f.title -text "摄像头设置 - 第2步/共3步" -font {Helvetica  24}
     pack $f.title -pady 10
     
-    ttk::label $f.status -text "正在重置USB驱动..." -font {"Noto Sans CJK SC" 14}
+    ttk::label $f.status -text "正在重置USB驱动..." -font {Helvetica  24}
     pack $f.status -pady 10
     
     # Progress bar
@@ -103,10 +103,10 @@ proc show_camera_connection {} {
     set f [ttk::frame .main.step3]
     pack $f -fill both -expand 1
     
-    ttk::label $f.title -text "摄像头设置 - 第3步/共3步" -font {Helvetica 12 bold}
+    ttk::label $f.title -text "摄像头设置 - 第3步/共3步" -font {Helvetica  24}
     pack $f.title -pady 10
     
-    ttk::label $f.instructions -text "请按以下顺序连接摄像头:" -font {Helvetica 10}
+    ttk::label $f.instructions -text "请按以下顺序连接摄像头:" -font {Helvetica 24}
     pack $f.instructions -pady 10
     
     # Camera buttons frame
@@ -115,7 +115,7 @@ proc show_camera_connection {} {
     
     # Create camera buttons
     for {set i 0} {$i < 3} {incr i} {
-        set btn [ttk::button $btn_frame.btn$i -text [lindex $::camera_labels $i] -state disabled]
+        set btn [ttk::button $btn_frame.btn$i -text [lindex $::camera_labels $i] -state disabled -style Camera.TButton]
         grid $btn -row 0 -column $i -padx 10
     }
     
@@ -166,7 +166,7 @@ proc show_completion {} {
     set f [ttk::frame .main.complete]
     pack $f -fill both -expand 1
     
-    ttk::label $f.title -text "设置完成!" -font {Helvetica 12 bold}
+    ttk::label $f.title -text "设置完成!" -font {Helvetica 24}
     pack $f.title -pady 10
     
     ttk::label $f.message -text "所有摄像头已按正确顺序成功连接。" \
@@ -188,8 +188,12 @@ proc destroy_widgets {} {
 option add *font {Helvetica 14}
 ttk::style configure TButton -padding 10
 ttk::style configure Large.TButton -font {Helvetica 16} -padding 12
+ttk::style configure Camera.TButton -font {Helvetica 24} -padding 10
 ttk::style configure Success.TButton -background "#4CAF50" -foreground white
 ttk::style configure Error.TButton -background "#F44336" -foreground white
 
 # Start the wizard
 show_initial_step
+
+# Run the application
+vwait forever
