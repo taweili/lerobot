@@ -1,10 +1,13 @@
 #!/bin/bash
 
+ARMS='["right_leader", "left_leader", "right_follower", "left_follower"]'
+HAS_ARGS=0
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --arms)
-            arms="$2"
+            ARMS="$2"
+            HAS_ARGS=1
             shift 2
             ;;
         *)
@@ -14,10 +17,12 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Default to both arms if not specified
-arms=${arms:-"right left"}
-
-python lerobot/scripts/control_robot.py \
+CMD="python lerobot/scripts/control_robot.py \
     --robot.type=sa100 \
-    --control.type=calibrate \
-    --control.arms $arms  # Use specified arms or default to both
+    --control.type=calibrate"
+
+if [ $HAS_ARGS -eq 1 ]; then
+    CMD="$CMD --control.arms=$ARMS"
+fi
+
+eval $CMD
