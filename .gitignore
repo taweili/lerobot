@@ -178,3 +178,9 @@ cython_debug/
 
 # training dataset
 my-notes/dataset
+
+# calibration
+.cache/calibration/sa100/left_follower.json
+.cache/calibration/sa100/left_leader.json
+.cache/calibration/sa100/right_follower.json
+.cache/calibration/sa100/right_leader.json
