@@ -21,12 +21,34 @@ set buttons [dict create \
     "left follower" [button $w.lfollower -text "左前" -state disabled] \
 ]
 
-# Grid layout
-grid $status -row 0 -column 0 -columnspan 2 -padx 5 -pady 5
-grid [dict get $buttons "right leader"] -row 1 -column 0 -padx 5 -pady 5
-grid [dict get $buttons "left leader"] -row 1 -column 1 -padx 5 -pady 5
-grid [dict get $buttons "right follower"] -row 2 -column 0 -padx 5 -pady 5
-grid [dict get $buttons "left follower"] -row 2 -column 1 -padx 5 -pady 5
+# Create position buttons
+set pos_buttons [dict create \
+    "middle" [button $w.middle -text "Middle" -state disabled] \
+    "zero" [button $w.zero -text "Zero" -state disabled] \
+    "rotated" [button $w.rotated -text "Rotated" -state disabled] \
+    "rest" [button $w.rest -text "Rest" -state disabled] \
+]
+
+# Grid layout configuration
+grid columnconfigure $w 0 -weight 1
+
+grid $status -row 0 -column 0 -sticky "nsew" -padx 5 -pady 5
+
+# Arm buttons
+grid [dict get $buttons "right leader"] -row 1 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $buttons "left leader"] -row 2 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $buttons "right follower"] -row 3 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $buttons "left follower"] -row 4 -column 0 -sticky "nsew" -padx 5 -pady 5
+
+# Divider between arm and position buttons
+ttk::separator $w.divider -orient horizontal
+grid $w.divider -row 5 -column 0 -sticky "ew" -pady 5
+
+# Position buttons
+grid [dict get $pos_buttons "middle"] -row 6 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $pos_buttons "zero"] -row 7 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $pos_buttons "rotated"] -row 8 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $pos_buttons "rest"] -row 9 -column 0 -sticky "nsew" -padx 5 -pady 5
 
 # Update status procedure
 proc update_status {msg} {
