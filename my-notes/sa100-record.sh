@@ -2,9 +2,12 @@
 
 # Function to display usage instructions
 usage() {
-    echo "Usage: $0 <repo_id> [--episode_time_s=10] [--reset_time_s=10] [--num_episodes=5]"
+    echo "Usage: $0 <repo_id> --single_task=<task> --tags=<json_array> [--episode_time_s=10] [--reset_time_s=10] [--num_episodes=5]"
     echo "  repo_id : Repository ID (must be a non-empty string)"
-    echo "Options:"
+    echo "Required Options:"
+    echo "  --single_task    : Task description (e.g. 'pick up doll')"
+    echo "  --tags           : JSON array of tags (e.g. '[\"sa100\",\"tutorial\"]')"
+    echo "Optional Options:"
     echo "  --episode_time_s : Episode duration in seconds (default: 10)"
     echo "  --reset_time_s   : Reset duration in seconds (default: 10)"
     echo "  --num_episodes   : Number of episodes (default: 5)"
@@ -15,10 +18,20 @@ usage() {
 EPISODE_TIME_S=10
 RESET_TIME_S=10
 NUM_EPISODES=5
+SINGLE_TASK=""
+TAGS=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --single_task=*)
+            SINGLE_TASK="${1#*=}"
+            shift
+            ;;
+        --tags=*)
+            TAGS="${1#*=}"
+            shift
+            ;;
         --episode_time_s=*)
             EPISODE_TIME_S="${1#*=}"
             shift
@@ -43,9 +56,19 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Check if repo_id argument is provided
+# Check if required arguments are provided
 if [ -z "$REPO_ID" ]; then
     echo "Error: repo_id argument is required"
+    usage
+fi
+
+if [ -z "$SINGLE_TASK" ]; then
+    echo "Error: --single_task argument is required"
+    usage
+fi
+
+if [ -z "$TAGS" ]; then
+    echo "Error: --tags argument is required"
     usage
 fi
 
@@ -59,13 +82,13 @@ python lerobot/scripts/control_robot.py \
   --robot.type=sa100 \
   --control.type=record \
   --control.fps=30 \
-  --control.single_task="pick up doll" \
-  --control.tags='["sa100","tutorial"]' \
+  --control.single_task="$SINGLE_TASK" \
+  --control.tags="$TAGS" \
   --control.warmup_time_s=5 \
   --control.episode_time_s=$EPISODE_TIME_S \
   --control.reset_time_s=$RESET_TIME_S \
   --control.num_episodes=$NUM_EPISODES \
   --control.push_to_hub=false \
-  --control.root=$HOME/dpbot_trainings/dataset/$REPO_ID \
+  --control.root=my-notes/dataset/$REPO_ID \
   --control.repo_id="$REPO_ID" \
   --control.display_data=true 

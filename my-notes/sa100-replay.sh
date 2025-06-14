@@ -16,6 +16,6 @@ mamba run -n dpbot python lerobot/scripts/control_robot.py \
     --robot.type=sa100 \
     --control.type=replay \
     --control.fps 30 \
-    --control.root "$HOME/dpbot_trainings/dataset/$REPO_ID" \
+    --control.root "my-notes/dataset/$REPO_ID" \
     --control.repo_id "$1" \
     --control.episode "$EPISODE"
