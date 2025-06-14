@@ -1,0 +1,55 @@
+#!/usr/bin/expect -f
+
+# Expect script to launch and interact with sa100-calibrate.sh
+set timeout -1
+
+# Get the directory of this script
+set script_dir [file dirname [file normalize [info script]]]
+
+# Get command line arguments to pass through
+set args [lrange $argv 0 end]
+
+# Spawn the calibration script with full path
+spawn $script_dir/sa100-calibrate.sh {*}$args
+
+# Handle various cases
+expect {
+    # Handle potential error messages
+    "Unknown argument:" {
+        puts "\nError: $expect_out(buffer)"
+        exit 1
+    }
+    
+    # Handle specific arm messages
+    -re "sa100 (right|left) (leader|follower)" {
+        puts "\nArm detected: $expect_out(1,string) $expect_out(2,string)"
+        exp_continue
+    }
+    
+    # Handle Python errors
+    -re "(Error|Exception):.*" {
+        puts "\nError encountered: $expect_out(buffer)"
+        exit 1
+    }
+    
+    # Handle calibration progress
+    -re "(Calibrating|Processing).*" {
+        puts "\nProgress: $expect_out(buffer)"
+        exp_continue
+    }
+    
+    # Handle any user prompts
+    -re ".*\\?.*" {
+        send -- "\r"
+        exp_continue
+    }
+    
+    # Wait for completion
+    eof {
+        puts "\nCalibration completed successfully"
+    }
+}
+
+# Exit with the same code as the spawned process
+catch wait result
+exit [lindex $result 3]
