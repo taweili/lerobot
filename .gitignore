@@ -184,3 +184,4 @@ my-notes/dataset
 .cache/calibration/sa100/left_leader.json
 .cache/calibration/sa100/right_follower.json
 .cache/calibration/sa100/right_leader.json
+.cache/calibration/sa100.tar
