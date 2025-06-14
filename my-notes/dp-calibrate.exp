@@ -1,5 +1,55 @@
 #!/usr/bin/expect -f
 
+# Load Tk for GUI
+package require Tk
+
+# Create main window
+set w [toplevel .calibrate]
+wm title $w "SA100 Arm Calibration"
+wm attributes $w -topmost 1
+
+# Create status text widget
+set status [text $w.status -width 50 -height 10 -wrap word]
+$status insert end "Calibration Status:\n\n"
+$status configure -state disabled
+
+# Create buttons for each arm type
+set buttons [dict create \
+    "right leader" [button $w.rleader -text "右后" -state disabled] \
+    "left leader" [button $w.lleader -text "左后" -state disabled] \
+    "right follower" [button $w.rfollower -text "右前" -state disabled] \
+    "left follower" [button $w.lfollower -text "左前" -state disabled] \
+]
+
+# Grid layout
+grid $status -row 0 -column 0 -columnspan 2 -padx 5 -pady 5
+grid [dict get $buttons "right leader"] -row 1 -column 0 -padx 5 -pady 5
+grid [dict get $buttons "left leader"] -row 1 -column 1 -padx 5 -pady 5
+grid [dict get $buttons "right follower"] -row 2 -column 0 -padx 5 -pady 5
+grid [dict get $buttons "left follower"] -row 2 -column 1 -padx 5 -pady 5
+
+# Update status procedure
+proc update_status {msg} {
+    global w status
+    $status configure -state normal
+    $status insert end "$msg\n"
+    $status see end
+    $status configure -state disabled
+    update
+}
+
+# Update button state procedure
+proc update_button {arm state} {
+    global buttons
+    set btn [dict get $buttons $arm]
+    if {$state == "active"} {
+        $btn configure -state normal -background yellow
+        update_status "Calibrating $arm..."
+    } else {
+        $btn configure -state disabled -background [ttk::style lookup TButton -background]
+    }
+}
+
 # Expect script to launch and interact with sa100-calibrate.sh
 set timeout -1
 
@@ -22,7 +72,9 @@ expect {
     
     # Handle specific arm messages
     -re "sa100 (right|left) (leader|follower)" {
-        puts "\nArm detected: $expect_out(1,string) $expect_out(2,string)"
+        set arm "$expect_out(1,string) $expect_out(2,string)"
+        puts "\nArm detected: $arm"
+        update_button $arm active
         exp_continue
     }
     
@@ -47,6 +99,10 @@ expect {
     # Wait for completion
     eof {
         puts "\nCalibration completed successfully"
+        # Reset all buttons
+        dict for {arm btn} $buttons {
+            update_button $arm inactive
+        }
     }
 }
 
