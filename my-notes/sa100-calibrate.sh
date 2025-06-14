@@ -22,7 +22,8 @@ CMD="python lerobot/scripts/control_robot.py \
     --control.type=calibrate"
 
 if [ $HAS_ARGS -eq 1 ]; then
-    CMD="$CMD --control.arms=$ARMS"
+    CMD="$CMD --control.arms='[\"$ARMS\"]'"
 fi
 
+echo $CMD 
 eval $CMD
