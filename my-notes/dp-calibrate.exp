@@ -68,6 +68,10 @@ grid [dict get $buttons "left follower"] -row 1 -column 0 -sticky "nsew" -padx 5
 ttk::separator $w.divider -orient horizontal
 grid $w.divider -row 5 -column 0 -columnspan 2 -sticky "ew" -pady 5  ;# Make divider span both columns
 
+# Instruction label
+label $w.instruction -text "按以下顺序摆动手臂位置。点击确认" -font [list Helvetica 16]
+grid $w.instruction -row 6 -column 0 -columnspan 2 -sticky "ew" -pady 5
+
 # Position buttons - centered below
 grid [dict get $buttons "middle"] -row 6 -column 0 -columnspan 2 -sticky "nsew" -padx 5 -pady 5
 grid [dict get $buttons "zero"] -row 7 -column 0 -columnspan 2 -sticky "nsew" -padx 5 -pady 5

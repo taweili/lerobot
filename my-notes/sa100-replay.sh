@@ -12,7 +12,7 @@ REPO_ID=$1
 # Set episode index (default to 0 if not provided)
 EPISODE=${2:-0}
 
-python lerobot/scripts/control_robot.py \
+mamba run -n dpbot python lerobot/scripts/control_robot.py \
     --robot.type=sa100 \
     --control.type=replay \
     --control.fps 30 \

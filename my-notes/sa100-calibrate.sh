@@ -17,7 +17,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-CMD="python lerobot/scripts/control_robot.py \
+CMD="mamba run -n dpbot python lerobot/scripts/control_robot.py \
     --robot.type=sa100 \
     --control.type=calibrate"
 
