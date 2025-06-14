@@ -9,7 +9,7 @@ set camera_labels {右边 左边 中间}
 set camera_states {0 0 0} ;# 0=not connected, 1=connected
 set current_step 0
 set check_interval 1000 ;# ms between automatic checks
-set max_wait_time 30000 ;# 30s timeout
+set max_wait_time 60000 ;# 60s timeout 
 
 # Main window
 wm title . "摄像头设置向导"
