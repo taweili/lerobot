@@ -1,0 +1,128 @@
+#!/usr/bin/expect -f
+
+package require Tk
+
+# Create main window
+wm title . "SA100 Recording Launcher"
+wm geometry . 500x350
+
+# Set font
+set font_spec {Arial 24}
+
+# Variables for form fields
+set repo_id ""
+set episode_time_s 10
+set reset_time_s 10
+set num_episodes 5
+set running 0
+
+# Form frame
+frame .form -padx 10 -pady 10
+pack .form -fill both -expand 1
+
+# Repository ID
+label .form.repo_label -text "Repository ID:" -font $font_spec
+entry .form.repo_entry -textvariable repo_id -font $font_spec
+grid .form.repo_label -row 0 -column 0 -sticky w -pady 5
+grid .form.repo_entry -row 0 -column 1 -sticky ew -pady 5
+
+# Episode Time
+label .form.episode_label -text "Episode Time (s):" -font $font_spec
+entry .form.episode_entry -textvariable episode_time_s -font $font_spec
+grid .form.episode_label -row 1 -column 0 -sticky w -pady 5
+grid .form.episode_entry -row 1 -column 1 -sticky ew -pady 5
+
+# Reset Time
+label .form.reset_label -text "Reset Time (s):" -font $font_spec
+entry .form.reset_entry -textvariable reset_time_s -font $font_spec
+grid .form.reset_label -row 2 -column 0 -sticky w -pady 5
+grid .form.reset_entry -row 2 -column 1 -sticky ew -pady 5
+
+# Number of Episodes
+label .form.num_label -text "Number of Episodes:" -font $font_spec
+entry .form.num_entry -textvariable num_episodes -font $font_spec
+grid .form.num_label -row 3 -column 0 -sticky w -pady 5
+grid .form.num_entry -row 3 -column 1 -sticky ew -pady 5
+
+# Status label
+label .status -text "" -font $font_spec
+pack .status -pady 10
+
+# Configure grid columns to expand
+grid columnconfigure .form 1 -weight 1
+
+# Button frame
+frame .buttons -padx 10 -pady 10
+pack .buttons -fill x -pady 10
+
+# Run button
+button .buttons.run -text "Run Recording" -font $font_spec -command {
+    if {$running} return
+    if {$repo_id eq ""} {
+        tk_messageBox -icon error -message "Repository ID is required" -type ok
+        return
+    }
+
+    set running 1
+    .buttons.run configure -state disabled
+    .status configure -text "Running recording..." -fg blue
+
+    set args [list $repo_id \
+        "--episode_time_s=$episode_time_s" \
+        "--reset_time_s=$reset_time_s" \
+        "--num_episodes=$num_episodes"]
+
+    # Get directory of current script and join with sa100-record.sh
+    set script_dir [file dirname [info script]]
+    set script_path [file join $script_dir "sa100-record.sh"]
+
+    # Spawn the recording script in background
+    spawn -noecho $script_path {*}$args
+    set recording_pid $spawn_id
+
+    # Background expect handler
+    expect_background {
+        -i $recording_pid
+        # Handle potential error messages
+        "Unknown argument:" {
+            puts "\nError: $expect_out(buffer)"
+            exec kill $recording_pid
+            exit 1
+        }
+        -re {INFO.*Warmup record} {
+            .status configure -text "Warm up" -fg yellow
+        }
+        -re {INFO.*Recording episode (\d+)} {
+            .status configure -text "Episode $expect_out(1,string)" -fg green
+        }
+        -re {INFO.*Reset the environment} {
+            .status configure -text "Reset" -fg red
+        }
+        eof {
+            .status configure -text "Recording completed" -fg green
+            .buttons.run configure -state normal
+            set running 0
+        }
+    }
+}
+
+# Stop button to terminate recording
+button .buttons.stop -text "Stop Recording" -font $font_spec -command {
+    if {!$running} return
+    exec kill $recording_pid
+    .status configure -text "Recording stopped" -fg red
+    .buttons.run configure -state normal
+    set running 0
+}
+
+# Arrange buttons side by side
+grid .buttons.run -row 0 -column 0 -padx 5 -sticky ew
+grid .buttons.stop -row 0 -column 1 -padx 5 -sticky ew
+grid columnconfigure .buttons 0 -weight 1
+grid columnconfigure .buttons 1 -weight 1
+
+# Adjust window size slightly
+wm geometry . 500x400
+
+# Start the GUI event loop
+tkwait window .
