@@ -25,5 +25,4 @@ if [ $HAS_ARGS -eq 1 ]; then
     CMD="$CMD --control.arms='[\"$ARMS\"]'"
 fi
 
-echo $CMD 
 eval $CMD
