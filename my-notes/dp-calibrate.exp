@@ -3,17 +3,7 @@
 # Load Tk for GUI
 package require Tk
 
-# Expect script to launch and interact with sa100-calibrate.sh
-set timeout -1
 
-# Get the directory of this script
-set script_dir [file dirname [file normalize [info script]]]
-
-# Get command line arguments to pass through
-set args [lrange $argv 0 end]
-
-# Spawn the calibration script with full path
-set c_process [spawn $script_dir/sa100-calibrate.sh {*}$args]
 
 # Create main window
 set w [toplevel .calibrate]
@@ -27,9 +17,19 @@ $status configure -state disabled
 
 # Button click handler
 proc button_click {btn} {
-    global c_process
+    global buttons
     exp_send "\r"
-    $btn configure -state disabled -background "#4CAF50" ;# Green color
+    
+    # Check if this is the rest button
+    if {$btn eq ".calibrate.rest"} {
+        # Disable all buttons
+        dict for {name button} $buttons {
+            $button configure -state disabled -background [ttk::style lookup TButton -background]
+        }
+    } else {
+        # Original behavior - disable just this button
+        $btn configure -state disabled -background "#4CAF50"
+    }
 }
 
 # Create buttons for each arm type
@@ -38,13 +38,9 @@ set buttons [dict create \
     "left leader" [button $w.lleader -text "左后" -state disabled -command {button_click $w.lleader}] \
     "right follower" [button $w.rfollower -text "右前" -state disabled -command {button_click $w.rfollower}] \
     "left follower" [button $w.lfollower -text "左前" -state disabled -command {button_click $w.lfollower}] \
-]
-
-# Create position buttons
-set pos_buttons [dict create \
     "middle" [button $w.middle -text "Middle" -state disabled -command {button_click $w.middle}] \
     "zero" [button $w.zero -text "Zero" -state disabled -command {button_click $w.zero}] \
-    "rotated" [button $w.rotated -text "Rotated" -state disabled -command {button_click $w.rotated}] \
+    "target" [button $w.target -text "Target" -state disabled -command {button_click $w.target}] \
     "rest" [button $w.rest -text "Rest" -state disabled -command {button_click $w.rest}] \
 ]
 
@@ -64,10 +60,10 @@ ttk::separator $w.divider -orient horizontal
 grid $w.divider -row 5 -column 0 -sticky "ew" -pady 5
 
 # Position buttons
-grid [dict get $pos_buttons "middle"] -row 6 -column 0 -sticky "nsew" -padx 5 -pady 5
-grid [dict get $pos_buttons "zero"] -row 7 -column 0 -sticky "nsew" -padx 5 -pady 5
-grid [dict get $pos_buttons "rotated"] -row 8 -column 0 -sticky "nsew" -padx 5 -pady 5
-grid [dict get $pos_buttons "rest"] -row 9 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $buttons "middle"] -row 6 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $buttons "zero"] -row 7 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $buttons "target"] -row 8 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $buttons "rest"] -row 9 -column 0 -sticky "nsew" -padx 5 -pady 5
 
 # Update status procedure
 proc update_status {msg} {
@@ -91,6 +87,18 @@ proc update_button {arm state} {
     }
 }
 
+# Expect script to launch and interact with sa100-calibrate.sh
+set timeout -1
+
+# Get the directory of this script
+set script_dir [file dirname [file normalize [info script]]]
+
+# Get command line arguments to pass through
+set args [lrange $argv 0 end]
+
+# Spawn the calibration script with full path
+spawn $script_dir/sa100-calibrate.sh {*}$args
+
 # Handle various cases
 expect {
     # Handle potential error messages
@@ -107,6 +115,14 @@ expect {
         exp_continue
     }
     
+    # Handle specific position 
+    -re "(middle|zero|target|rest) position" {
+        set pos "$expect_out(1,string)"
+        puts "\nPosition deteced: $pos"
+        update_button $pos active
+        exp_continue
+    }
+
     # Handle Python errors
     -re "(Error|Exception):.*" {
         puts "\nError encountered: $expect_out(buffer)"
