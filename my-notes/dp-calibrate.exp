@@ -27,43 +27,52 @@ proc button_click {btn} {
             $button configure -state disabled -background [ttk::style lookup TButton -background]
         }
     } else {
-        # Original behavior - disable just this button
-        $btn configure -state disabled -background "#4CAF50"
+        # Get button name from path
+        set btn_name [lindex [split $btn .] end]
+        
+        # Change color for all buttons
+        $btn configure -background "#4CAF50"
+        
+        # Disable the clicked button immediately
+        $btn configure -state disabled
+        
+        # For position buttons, they'll be re-enabled by update_button when needed
     }
 }
 
 # Create buttons for each arm type
 set buttons [dict create \
-    "right leader" [button $w.rleader -text "右后" -state disabled -command {button_click $w.rleader}] \
-    "left leader" [button $w.lleader -text "左后" -state disabled -command {button_click $w.lleader}] \
-    "right follower" [button $w.rfollower -text "右前" -state disabled -command {button_click $w.rfollower}] \
-    "left follower" [button $w.lfollower -text "左前" -state disabled -command {button_click $w.lfollower}] \
-    "middle" [button $w.middle -text "Middle" -state disabled -command {button_click $w.middle}] \
-    "zero" [button $w.zero -text "Zero" -state disabled -command {button_click $w.zero}] \
-    "target" [button $w.target -text "Target" -state disabled -command {button_click $w.target}] \
-    "rest" [button $w.rest -text "Rest" -state disabled -command {button_click $w.rest}] \
+    "right leader" [button $w.rleader -text "右后" -state disabled -command {button_click $w.rleader} -font [list Helvetica 36]] \
+    "left leader" [button $w.lleader -text "左后" -state disabled -command {button_click $w.lleader} -font [list Helvetica 36]] \
+    "right follower" [button $w.rfollower -text "右前" -state disabled -command {button_click $w.rfollower} -font [list Helvetica 36]] \
+    "left follower" [button $w.lfollower -text "左前" -state disabled -command {button_click $w.lfollower} -font [list Helvetica 36]] \
+    "middle" [button $w.middle -text "Middle" -state disabled -command {button_click $w.middle} -font [list Helvetica 36]] \
+    "zero" [button $w.zero -text "Zero" -state disabled -command {button_click $w.zero} -font [list Helvetica 36]] \
+    "target" [button $w.target -text "Target" -state disabled -command {button_click $w.target} -font [list Helvetica 36]] \
+    "rest" [button $w.rest -text "Rest" -state disabled -command {button_click $w.rest} -font [list Helvetica 36]] \
 ]
 
 # Grid layout configuration
 grid columnconfigure $w 0 -weight 1
+grid columnconfigure $w 1 -weight 1  ;# Add equal weight to second column
 
-grid $status -row 0 -column 0 -sticky "nsew" -padx 5 -pady 5
+grid $status -row 0 -column 0 -columnspan 2 -sticky "nsew" -padx 5 -pady 5  ;# Make status span both columns
 
-# Arm buttons
-grid [dict get $buttons "right leader"] -row 1 -column 0 -sticky "nsew" -padx 5 -pady 5
-grid [dict get $buttons "left leader"] -row 2 -column 0 -sticky "nsew" -padx 5 -pady 5
-grid [dict get $buttons "right follower"] -row 3 -column 0 -sticky "nsew" -padx 5 -pady 5
-grid [dict get $buttons "left follower"] -row 4 -column 0 -sticky "nsew" -padx 5 -pady 5
+# Arm buttons - all with uniform width
+grid [dict get $buttons "right leader"] -row 2 -column 1 -sticky "nsew" -padx 5 -pady 5 -ipadx 20
+grid [dict get $buttons "left leader"] -row 2 -column 0 -sticky "nsew" -padx 5 -pady 5 -ipadx 20
+grid [dict get $buttons "right follower"] -row 1 -column 1 -sticky "nsew" -padx 5 -pady 5 -ipadx 20
+grid [dict get $buttons "left follower"] -row 1 -column 0 -sticky "nsew" -padx 5 -pady 5 -ipadx 20
 
 # Divider between arm and position buttons
 ttk::separator $w.divider -orient horizontal
-grid $w.divider -row 5 -column 0 -sticky "ew" -pady 5
+grid $w.divider -row 5 -column 0 -columnspan 2 -sticky "ew" -pady 5  ;# Make divider span both columns
 
-# Position buttons
-grid [dict get $buttons "middle"] -row 6 -column 0 -sticky "nsew" -padx 5 -pady 5
-grid [dict get $buttons "zero"] -row 7 -column 0 -sticky "nsew" -padx 5 -pady 5
-grid [dict get $buttons "target"] -row 8 -column 0 -sticky "nsew" -padx 5 -pady 5
-grid [dict get $buttons "rest"] -row 9 -column 0 -sticky "nsew" -padx 5 -pady 5
+# Position buttons - centered below
+grid [dict get $buttons "middle"] -row 6 -column 0 -columnspan 2 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $buttons "zero"] -row 7 -column 0 -columnspan 2 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $buttons "target"] -row 8 -column 0 -columnspan 2 -sticky "nsew" -padx 5 -pady 5
+grid [dict get $buttons "rest"] -row 9 -column 0 -columnspan 2 -sticky "nsew" -padx 5 -pady 5
 
 # Update status procedure
 proc update_status {msg} {
@@ -79,10 +88,21 @@ proc update_status {msg} {
 proc update_button {arm state} {
     global buttons
     set btn [dict get $buttons $arm]
+    set btn_name [lindex [split $btn .] end]
+    
     if {$state == "active"} {
-        $btn configure -state normal -background yellow
+        # Change color for all buttons
+        $btn configure -background yellow
         update_status "Calibrating $arm..."
+        
+        # Only enable position buttons
+        if {$btn_name in {middle zero target rest}} {
+            $btn configure -state normal
+        } else {
+            $btn configure -state disabled
+        }
     } else {
+        # Reset all buttons to default disabled state
         $btn configure -state disabled -background [ttk::style lookup TButton -background]
     }
 }
