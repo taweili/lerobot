@@ -3,7 +3,7 @@
 package require Tk
 
 # Create main window
-wm title . "SA100 Recording Launcher"
+wm title . "SA100 录制启动器"
 wm geometry . 500x350
 
 # Set font
@@ -21,25 +21,25 @@ frame .form -padx 10 -pady 10
 pack .form -fill both -expand 1
 
 # Repository ID
-label .form.repo_label -text "Repository ID:" -font $font_spec
+label .form.repo_label -text "仓库ID:" -font $font_spec
 entry .form.repo_entry -textvariable repo_id -font $font_spec
 grid .form.repo_label -row 0 -column 0 -sticky w -pady 5
 grid .form.repo_entry -row 0 -column 1 -sticky ew -pady 5
 
 # Episode Time
-label .form.episode_label -text "Episode Time (s):" -font $font_spec
+label .form.episode_label -text "单次录制时长(秒):" -font $font_spec
 entry .form.episode_entry -textvariable episode_time_s -font $font_spec
 grid .form.episode_label -row 1 -column 0 -sticky w -pady 5
 grid .form.episode_entry -row 1 -column 1 -sticky ew -pady 5
 
 # Reset Time
-label .form.reset_label -text "Reset Time (s):" -font $font_spec
+label .form.reset_label -text "重置时长(秒):" -font $font_spec
 entry .form.reset_entry -textvariable reset_time_s -font $font_spec
 grid .form.reset_label -row 2 -column 0 -sticky w -pady 5
 grid .form.reset_entry -row 2 -column 1 -sticky ew -pady 5
 
 # Number of Episodes
-label .form.num_label -text "Number of Episodes:" -font $font_spec
+label .form.num_label -text "录制次数:" -font $font_spec
 entry .form.num_entry -textvariable num_episodes -font $font_spec
 grid .form.num_label -row 3 -column 0 -sticky w -pady 5
 grid .form.num_entry -row 3 -column 1 -sticky ew -pady 5
@@ -56,16 +56,16 @@ frame .buttons -padx 10 -pady 10
 pack .buttons -fill x -pady 10
 
 # Run button
-button .buttons.run -text "Run Recording" -font $font_spec -command {
+button .buttons.run -text "开始录制" -font $font_spec -command {
     if {$running} return
     if {$repo_id eq ""} {
-        tk_messageBox -icon error -message "Repository ID is required" -type ok
+        tk_messageBox -icon error -message "必须填写仓库ID" -type ok
         return
     }
 
     set running 1
     .buttons.run configure -state disabled
-    .status configure -text "Running recording..." -fg blue
+    .status configure -text "正在录制中..." -fg blue
 
     set args [list $repo_id \
         "--episode_time_s=$episode_time_s" \
@@ -90,16 +90,16 @@ button .buttons.run -text "Run Recording" -font $font_spec -command {
             exit 1
         }
         -re {INFO.*Warmup record} {
-            .status configure -text "Warm up" -fg yellow
+            .status configure -text "准备中" -fg yellow
         }
         -re {INFO.*Recording episode (\d+)} {
-            .status configure -text "Episode $expect_out(1,string)" -fg green
+            .status configure -text "录制中 $expect_out(1,string)/$num_episodes" -fg green
         }
         -re {INFO.*Reset the environment} {
-            .status configure -text "Reset" -fg red
+            .status configure -text "重置中" -fg red
         }
         eof {
-            .status configure -text "Recording completed" -fg green
+            .status configure -text "录制完成" -fg green
             .buttons.run configure -state normal
             set running 0
         }
@@ -107,10 +107,10 @@ button .buttons.run -text "Run Recording" -font $font_spec -command {
 }
 
 # Stop button to terminate recording
-button .buttons.stop -text "Stop Recording" -font $font_spec -command {
+button .buttons.stop -text "停止录制" -font $font_spec -command {
     if {!$running} return
     exec kill $recording_pid
-    .status configure -text "Recording stopped" -fg red
+    .status configure -text "录制已停止" -fg red
     .buttons.run configure -state normal
     set running 0
 }
