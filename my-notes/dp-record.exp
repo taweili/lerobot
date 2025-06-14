@@ -14,6 +14,8 @@ set repo_id ""
 set episode_time_s 10
 set reset_time_s 10
 set num_episodes 5
+set single_task ""
+set tags ""
 set running 0
 
 # Form frame
@@ -44,6 +46,18 @@ entry .form.num_entry -textvariable num_episodes -font $font_spec
 grid .form.num_label -row 3 -column 0 -sticky w -pady 5
 grid .form.num_entry -row 3 -column 1 -sticky ew -pady 5
 
+# Task Description
+label .form.task_label -text "任务描述:" -font $font_spec
+entry .form.task_entry -textvariable single_task -font $font_spec
+grid .form.task_label -row 4 -column 0 -sticky w -pady 5
+grid .form.task_entry -row 4 -column 1 -sticky ew -pady 5
+
+# Tags
+label .form.tags_label -text "标签(逗号分隔):" -font $font_spec
+entry .form.tags_entry -textvariable tags -font $font_spec
+grid .form.tags_label -row 5 -column 0 -sticky w -pady 5
+grid .form.tags_entry -row 5 -column 1 -sticky ew -pady 5
+
 # Status label
 label .status -text "" -font $font_spec
 pack .status -pady 10
@@ -62,6 +76,14 @@ button .buttons.run -text "开始录制" -font $font_spec -command {
         tk_messageBox -icon error -message "必须填写仓库ID" -type ok
         return
     }
+    if {$single_task eq ""} {
+        tk_messageBox -icon error -message "必须填写任务描述" -type ok
+        return
+    }
+    if {$tags eq ""} {
+        tk_messageBox -icon error -message "必须填写标签" -type ok
+        return
+    }
 
     set running 1
     .buttons.run configure -state disabled
@@ -70,7 +92,9 @@ button .buttons.run -text "开始录制" -font $font_spec -command {
     set args [list $repo_id \
         "--episode_time_s=$episode_time_s" \
         "--reset_time_s=$reset_time_s" \
-        "--num_episodes=$num_episodes"]
+        "--num_episodes=$num_episodes" \
+        "--single_task=$single_task" \
+        "--tags=$tags"]
 
     # Get directory of current script and join with sa100-record.sh
     set script_dir [file dirname [info script]]
@@ -121,8 +145,8 @@ grid .buttons.stop -row 0 -column 1 -padx 5 -sticky ew
 grid columnconfigure .buttons 0 -weight 1
 grid columnconfigure .buttons 1 -weight 1
 
-# Adjust window size slightly
-wm geometry . 500x400
+# Adjust window size for new fields
+wm geometry . 500x500
 
 # Start the GUI event loop
 tkwait window .

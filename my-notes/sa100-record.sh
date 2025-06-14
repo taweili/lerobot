@@ -6,7 +6,7 @@ usage() {
     echo "  repo_id : Repository ID (must be a non-empty string)"
     echo "Required Options:"
     echo "  --single_task    : Task description (e.g. 'pick up doll')"
-    echo "  --tags           : JSON array of tags (e.g. '[\"sa100\",\"tutorial\"]')"
+    echo "  --tags           : comma seperated tags (e.g. sa100,doll)"
     echo "Optional Options:"
     echo "  --episode_time_s : Episode duration in seconds (default: 10)"
     echo "  --reset_time_s   : Reset duration in seconds (default: 10)"
@@ -70,6 +70,9 @@ fi
 if [ -z "$TAGS" ]; then
     echo "Error: --tags argument is required"
     usage
+else
+    TAGS_JSON=$(echo "$TAGS" | jq -Rc 'split(",")')
+    TAGS="$TAGS_JSON"
 fi
 
 # Validate repo_id is not empty
