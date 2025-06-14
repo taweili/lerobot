@@ -3,6 +3,18 @@
 # Load Tk for GUI
 package require Tk
 
+# Expect script to launch and interact with sa100-calibrate.sh
+set timeout -1
+
+# Get the directory of this script
+set script_dir [file dirname [file normalize [info script]]]
+
+# Get command line arguments to pass through
+set args [lrange $argv 0 end]
+
+# Spawn the calibration script with full path
+set c_process [spawn $script_dir/sa100-calibrate.sh {*}$args]
+
 # Create main window
 set w [toplevel .calibrate]
 wm title $w "SA100 Arm Calibration"
@@ -13,20 +25,27 @@ set status [text $w.status -width 50 -height 10 -wrap word]
 $status insert end "Calibration Status:\n\n"
 $status configure -state disabled
 
+# Button click handler
+proc button_click {btn} {
+    global c_process
+    exp_send "\r"
+    $btn configure -state disabled -background "#4CAF50" ;# Green color
+}
+
 # Create buttons for each arm type
 set buttons [dict create \
-    "right leader" [button $w.rleader -text "右后" -state disabled] \
-    "left leader" [button $w.lleader -text "左后" -state disabled] \
-    "right follower" [button $w.rfollower -text "右前" -state disabled] \
-    "left follower" [button $w.lfollower -text "左前" -state disabled] \
+    "right leader" [button $w.rleader -text "右后" -state disabled -command {button_click $w.rleader}] \
+    "left leader" [button $w.lleader -text "左后" -state disabled -command {button_click $w.lleader}] \
+    "right follower" [button $w.rfollower -text "右前" -state disabled -command {button_click $w.rfollower}] \
+    "left follower" [button $w.lfollower -text "左前" -state disabled -command {button_click $w.lfollower}] \
 ]
 
 # Create position buttons
 set pos_buttons [dict create \
-    "middle" [button $w.middle -text "Middle" -state disabled] \
-    "zero" [button $w.zero -text "Zero" -state disabled] \
-    "rotated" [button $w.rotated -text "Rotated" -state disabled] \
-    "rest" [button $w.rest -text "Rest" -state disabled] \
+    "middle" [button $w.middle -text "Middle" -state disabled -command {button_click $w.middle}] \
+    "zero" [button $w.zero -text "Zero" -state disabled -command {button_click $w.zero}] \
+    "rotated" [button $w.rotated -text "Rotated" -state disabled -command {button_click $w.rotated}] \
+    "rest" [button $w.rest -text "Rest" -state disabled -command {button_click $w.rest}] \
 ]
 
 # Grid layout configuration
@@ -71,18 +90,6 @@ proc update_button {arm state} {
         $btn configure -state disabled -background [ttk::style lookup TButton -background]
     }
 }
-
-# Expect script to launch and interact with sa100-calibrate.sh
-set timeout -1
-
-# Get the directory of this script
-set script_dir [file dirname [file normalize [info script]]]
-
-# Get command line arguments to pass through
-set args [lrange $argv 0 end]
-
-# Spawn the calibration script with full path
-spawn $script_dir/sa100-calibrate.sh {*}$args
 
 # Handle various cases
 expect {
