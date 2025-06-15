@@ -1,0 +1,121 @@
+#!/usr/bin/expect -f
+
+package require Tk
+
+# Create main window
+wm title . "SA100 Training Launcher"
+wm geometry . 800x600
+
+# Repo ID field
+label .repo_label -text "Repo ID:"
+entry .repo_entry -width 30
+.repo_entry insert 0 ""
+
+# Policy field
+label .policy_label -text "Policy Type/Path:"
+entry .policy_entry -width 30
+.policy_entry insert 0 ""
+
+# Help text
+label .help -text "Policy types: tdmpc, diffusion, act\nPolicy path example: lerobot/pi0fast_base"
+.help configure -justify left
+
+# Stats frame
+frame .stats_frame -relief groove -bd 2
+label .stats_title -text "Training Progress" -font {Helvetica 10 bold}
+grid .stats_title -in .stats_frame -row 0 -column 0 -columnspan 2 -pady 5
+
+# Stats labels
+set stat_labels {
+    "Step:" step_val
+    "Samples:" smpl_val 
+    "Epochs:" ep_val
+    "Epoch:" epch_val
+    "Loss:" loss_val
+    "Gradient:" grdn_val
+    "LR:" lr_val
+    "Update/s:" updt_val
+    "Data/s:" data_val
+}
+
+set row 1
+set col 0
+foreach {label var} $stat_labels {
+    label .stats_$var -text $label -anchor w
+    label .$var -text "---" -width 10 -anchor w
+    grid .stats_$var -in .stats_frame -row $row -column $col -sticky w -padx 5
+    grid .$var -in .stats_frame -row $row -column [expr $col+1] -sticky w -padx 5
+    
+    if {$col == 0} {set col 2} else {set col 0; incr row}
+}
+
+# Output text area
+frame .output_frame
+text .output -width 80 -height 15 -wrap word -yscrollcommand ".scroll set"
+scrollbar .scroll -command ".output yview"
+pack .scroll -in .output_frame -side right -fill y
+pack .output -in .output_frame -side left -fill both -expand true
+
+# Execute button
+button .execute -text "Train" -command {
+    set repo_id [.repo_entry get]
+    set policy [.policy_entry get]
+    
+    if {$repo_id eq "" || $policy eq ""} {
+        tk_messageBox -message "Both fields are required!" -type ok -icon error
+        return
+    }
+    
+    # Clear previous output
+    .output delete 1.0 end
+    
+    # Launch the training script
+    spawn /bin/bash my-notes/sa100-train.sh $repo_id $policy
+    
+    # Setup output handling
+    expect_background {
+        -i $spawn_id
+        eof {
+            .output insert end "\nProcess completed\n"
+            .output see end
+        }
+        timeout {
+            .output insert end "\nProcess timed out\n"
+            .output see end
+        }
+        -re {INFO.*step:(\S+)\s+smpl:(\S+)\s+ep:(\S+)\s+epch:(\S+)\s+loss:(\S+)\s+grdn:(\S+)\s+lr:(\S+)\s+updt_s:(\S+)\s+data_s:(\S+)} {
+            .step_val configure -text $expect_out(1,string)
+            .smpl_val configure -text $expect_out(2,string)
+            .ep_val configure -text $expect_out(3,string)
+            .epch_val configure -text $expect_out(4,string)
+            .loss_val configure -text $expect_out(5,string)
+            .grdn_val configure -text $expect_out(6,string)
+            .lr_val configure -text $expect_out(7,string)
+            .updt_val configure -text $expect_out(8,string)
+            .data_val configure -text $expect_out(9,string)
+            exp_continue
+        }
+        -re "(.*)\n" {
+            .output insert end "$expect_out(1,string)\n"
+            .output see end
+            exp_continue
+        }
+    }
+}
+
+# Layout
+grid .repo_label -row 0 -column 0 -sticky w -padx 5 -pady 5
+grid .repo_entry -row 0 -column 1 -sticky ew -padx 5 -pady 5
+grid .policy_label -row 1 -column 0 -sticky w -padx 5 -pady 5
+grid .policy_entry -row 1 -column 1 -sticky ew -padx 5 -pady 5
+grid .help -row 2 -column 0 -columnspan 2 -sticky w -padx 5 -pady 5
+grid .execute -row 3 -column 0 -columnspan 2 -pady 10
+grid .stats_frame -row 4 -column 0 -columnspan 2 -sticky ew -padx 5 -pady 5
+grid .output_frame -row 5 -column 0 -columnspan 2 -sticky nsew -padx 5 -pady 5
+
+# Configure weights
+grid columnconfigure . 1 -weight 1
+grid rowconfigure . 5 -weight 1
+
+# Start the GUI event loop
+tkwait window .
