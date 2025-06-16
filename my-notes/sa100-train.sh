@@ -7,7 +7,7 @@ if [ $# -ne 2 ]; then
   exit 1
 fi
 
-REPO_ID=$1
+REPO_ID="$1-$(hostname)"
 INPUT=$2
 
 # Determine if input is a policy type or path

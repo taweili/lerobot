@@ -46,7 +46,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             if [ -z "$REPO_ID" ]; then
-                REPO_ID="$1"
+                REPO_ID="$1-$(hostname)"
                 shift
             else
                 echo "Error: Unknown argument $1"

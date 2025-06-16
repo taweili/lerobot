@@ -5,7 +5,7 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-REPO_ID=$1
+REPO_ID="$1-$(hostname)"
 PORT=${2:-9013}
 ROOT_PATH="my-notes/dataset/$REPO_ID"
 
